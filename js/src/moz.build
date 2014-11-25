@@ -251,6 +251,7 @@ UNIFIED_SOURCES += [
     'vm/Interpreter.cpp',
     'vm/JSONParser.cpp',
     'vm/MemoryMetrics.cpp',
+    'vm/MemoryProfiler.cpp',
     'vm/Monitor.cpp',
     'vm/NativeObject.cpp',
     'vm/PIC.cpp',

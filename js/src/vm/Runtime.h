@@ -39,6 +39,7 @@
 #include "vm/DateTime.h"
 #include "vm/MallocProvider.h"
 #include "vm/SPSProfiler.h"
+#include "vm/MemoryProfiler.h"
 #include "vm/Stack.h"
 #include "vm/Symbol.h"
 #include "vm/ThreadPool.h"
@@ -1413,6 +1414,8 @@ struct JSRuntime : public JS::shadow::Runtime,
      * function to assess the size of malloc'd blocks of memory.
      */
     mozilla::MallocSizeOf debuggerMallocSizeOf;
+
+    MProfiler mprofiler;
 };
 
 namespace js {

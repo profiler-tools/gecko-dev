@@ -920,4 +920,22 @@ void mozilla_sampler_print_location1()
   delete info;
 }
 
+std::vector<const char *> SPSGetStacktrace()
+{
+    std::vector<const char *> trace;
+    PseudoStack *pseudoStack = tlsPseudoStack.get();
+
+    if (!pseudoStack)
+        return trace;
+
+    volatile StackEntry *pseudoFrames = pseudoStack->mStack;
+    uint32_t pseudoCount = pseudoStack->stackSize();
+
+    for (uint32_t i = 0; i < pseudoCount; i++) {
+//        if (pseudoFrames[i].isJs())
+            trace.push_back(pseudoFrames[i].label());
+    }
+
+    return trace;
+}
 

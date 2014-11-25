@@ -48,6 +48,8 @@
 #include "nsIXULRuntime.h"
 #include "nsJSPrincipals.h"
 
+#include <vector>
+
 #ifdef MOZ_CRASHREPORTER
 #include "nsExceptionHandler.h"
 #endif
@@ -92,6 +94,9 @@ const char* const XPCJSRuntime::mStrings[] = {
 };
 
 /***************************************************************************/
+
+extern std::vector<const char *> SPSGetStacktrace();
+extern void MPSetStacktracer(JSRuntime *, std::vector<const char *> (*)());
 
 static mozilla::Atomic<bool> sDiscardSystemSource(false);
 
@@ -1633,7 +1638,10 @@ XPCJSRuntime::~XPCJSRuntime()
 #ifdef MOZ_ENABLE_PROFILER_SPS
     // Tell the profiler that the runtime is gone
     if (PseudoStack *stack = mozilla_get_pseudo_stack())
+    {
+        MPSetStacktracer(stack->mRuntime, nullptr);
         stack->sampleRuntime(nullptr);
+    }
 #endif
 
     Preferences::UnregisterCallback(ReloadPrefsCallback, JS_OPTIONS_DOT_STR, this);
@@ -3290,7 +3298,10 @@ XPCJSRuntime::XPCJSRuntime(nsXPConnect* aXPConnect)
 #endif
 #ifdef MOZ_ENABLE_PROFILER_SPS
     if (PseudoStack *stack = mozilla_get_pseudo_stack())
+    {
         stack->sampleRuntime(runtime);
+        MPSetStacktracer(runtime, SPSGetStacktrace);
+    }
 #endif
     JS_SetAccumulateTelemetryCallback(runtime, AccumulateTelemetryCallback);
     js::SetDefaultJSContextCallback(runtime, DefaultJSContextCallback);

@@ -29,6 +29,9 @@ struct JSCompartment;
 
 struct JSRuntime;
 
+void MPSampleTenuredHeap(void *addr, int32_t thingSize);
+void MPMark(void *addr);
+
 namespace JS {
 namespace shadow {
 struct Runtime;
@@ -496,6 +499,7 @@ class FreeList
         }
         head.checkSpan(thingSize);
         JS_EXTRA_POISON(reinterpret_cast<void *>(thing), JS_ALLOCATED_TENURED_PATTERN, thingSize);
+        MPSampleTenuredHeap(reinterpret_cast<void *>(thing), thingSize);
         return reinterpret_cast<TenuredCell *>(thing);
     }
 };
@@ -1274,6 +1278,7 @@ bool
 TenuredCell::markIfUnmarked(uint32_t color /* = BLACK */) const
 {
     AssertValidColor(this, color);
+    MPMark(reinterpret_cast<void *>(address()));
     return chunk()->bitmap.markIfUnmarked(this, color);
 }
 

@@ -245,6 +245,9 @@ using mozilla::Swap;
 
 using JS::AutoGCRooter;
 
+void MPMarkStart(JSRuntime *);
+void MPSweep(JSRuntime *);
+
 /* Perform a Full GC every 20 seconds if MaybeGC is called */
 static const uint64_t GC_IDLE_FULL_SPAN = 20 * 1000 * 1000;
 
@@ -4064,6 +4067,7 @@ GCRuntime::beginMarkPhase(JS::gcreason::Reason reason)
             zone->allocator.arenas.purge();
     }
 
+    MPMarkStart(rt);
     marker.start();
     MOZ_ASSERT(!marker.callback);
     MOZ_ASSERT(IS_GC_MARKING_TRACER(&marker));
@@ -5626,6 +5630,7 @@ GCRuntime::finishCollection()
 {
     MOZ_ASSERT(marker.isDrained());
     marker.stop();
+    MPSweep(rt);
 
     uint64_t currentTime = PRMJ_Now();
     schedulingState.updateHighFrequencyMode(lastGCTime, currentTime, tunables);

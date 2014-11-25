@@ -9,6 +9,7 @@ if CONFIG['MOZ_ENABLE_PROFILER_SPS']:
 
     XPIDL_MODULE = 'profiler'
     XPIDL_SOURCES += [
+        'nsIMemoryProfiler.idl',
         'nsIProfiler.idl',
         'nsIProfileSaveEvent.idl',
     ]
@@ -26,6 +27,7 @@ if CONFIG['MOZ_ENABLE_PROFILER_SPS']:
     UNIFIED_SOURCES += [
         'BreakpadSampler.cpp',
         'JSStreamWriter.cpp',
+        'MemoryProfiler.cpp',
         'nsProfiler.cpp',
         'nsProfilerFactory.cpp',
         'nsProfilerStartParams.cpp',
@@ -84,6 +86,7 @@ if CONFIG['MOZ_ENABLE_PROFILER_SPS']:
     LOCAL_INCLUDES += [
         '/docshell/base',
         '/ipc/chromium/src',
+        '/js/xpconnect/src',
         '/mozglue/linker',
         '/toolkit/crashreporter/google-breakpad/src',
         '/xpcom/base',

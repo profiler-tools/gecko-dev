@@ -97,6 +97,10 @@ const char* const XPCJSRuntime::mStrings[] = {
 
 extern std::vector<const char *> SPSGetStacktrace();
 extern void MPSetStacktracer(JSRuntime *, std::vector<const char *> (*)());
+extern "C" void ReplaceMallocHook(void (*)(void *p, size_t), void (*)(void *p))
+           __attribute__((weak, visibility("default")));
+extern "C" void MPSampleNativeHeap(void *, size_t);
+extern "C" void MPRemove(void *);
 
 static mozilla::Atomic<bool> sDiscardSystemSource(false);
 
@@ -3300,6 +3304,8 @@ XPCJSRuntime::XPCJSRuntime(nsXPConnect* aXPConnect)
     if (PseudoStack *stack = mozilla_get_pseudo_stack())
     {
         stack->sampleRuntime(runtime);
+        if (ReplaceMallocHook)
+            ReplaceMallocHook(MPSampleNativeHeap, MPRemove);
         MPSetStacktracer(runtime, SPSGetStacktrace);
     }
 #endif

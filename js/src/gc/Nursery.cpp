@@ -30,6 +30,7 @@
 #include "jsgcinlines.h"
 
 #include "vm/NativeObject-inl.h"
+#include "js/MemoryProfiler.h"
 
 using namespace js;
 using namespace gc;
@@ -38,9 +39,6 @@ using mozilla::ArrayLength;
 using mozilla::PodCopy;
 using mozilla::PodZero;
 
-void MPSampleNurseryHeap(void *addr, int32_t thingSize);
-void MPRelocate(void *addrOld, void *addrNew);
-void MPCollect(JSRuntime *);
 //#define PROFILE_NURSERY
 
 #ifdef PROFILE_NURSERY
@@ -216,7 +214,7 @@ js::Nursery::allocate(size_t size)
     position_ = position() + size;
 
     JS_EXTRA_POISON(thing, JS_ALLOCATED_NURSERY_PATTERN, size);
-    MPSampleNurseryHeap(reinterpret_cast<void *>(thing), size);
+    MemProfiler::SampleNursery(reinterpret_cast<void *>(thing), size);
     return thing;
 }
 
@@ -593,7 +591,7 @@ js::Nursery::moveToTenured(MinorCollectionTracer *trc, JSObject *src)
     JSObject *dst = reinterpret_cast<JSObject *>(allocateFromTenured(zone, dstKind));
     if (!dst)
         CrashAtUnhandlableOOM("Failed to allocate object while tenuring.");
-    MPRelocate(src, dst);
+    MemProfiler::MoveNurseryToTenured(src, dst);
 
     trc->tenuredSize += moveObjectToTenured(dst, src, dstKind);
 
@@ -902,7 +900,7 @@ js::Nursery::collect(JSRuntime *rt, JS::gcreason::Reason reason, TypeObjectList 
 
     TIME_END(total);
 
-    MPCollect(rt);
+    MemProfiler::SweepNursery(rt);
     TraceMinorGCEnd();
 
 #ifdef PROFILE_NURSERY

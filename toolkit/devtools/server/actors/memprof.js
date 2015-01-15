@@ -45,26 +45,8 @@ let MemprofActor = protocol.ActorClass({
     response: {}
   }),
 
-  getFrameNameTable: method(function() {
-    return this._profiler.getFrameNameTable();
-  }, {
-    request: {},
-    response: {
-      ret: RetVal("json")
-    }
-  }),
-
-  getStacktraceTable: method(function() {
-    return this._profiler.getStacktraceTable();
-  }, {
-    request: {},
-    response: {
-      ret: RetVal("json")
-    }
-  }),
-
-  getAllocatedEntries: method(function() {
-    return this._profiler.getAllocatedEntries();
+  getResults: method(function() {
+    return this._profiler.getResults();
   }, {
     request: {},
     response: {

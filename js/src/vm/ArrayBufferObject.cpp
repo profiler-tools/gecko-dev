@@ -39,6 +39,7 @@
 #include "gc/Marking.h"
 #include "gc/Memory.h"
 #include "js/MemoryMetrics.h"
+#include "js/MemoryProfiler.h"
 #include "vm/GlobalObject.h"
 #include "vm/Interpreter.h"
 #include "vm/NumericConversions.h"
@@ -58,8 +59,6 @@ using namespace js;
 using namespace js::gc;
 using namespace js::types;
 
-extern "C" void MPSampleNativeHeap(void *addr, int32_t size);
-extern "C" void MPRemove(void *addr);
 /*
  * Convert |v| to an array index for an array of length |length| per
  * the Typed Array Specification section 7.0, |subarray|. If successful,
@@ -261,6 +260,7 @@ ReleaseAsmJSMappedData(void *base)
     }
 #   endif
 #  endif
+    MemProfiler::RemoveNative(base);
 }
 #else
 static void
@@ -306,6 +306,7 @@ TransferAsmJSMappedBuffer(JSContext *cx, CallArgs args, Handle<ArrayBufferObject
             js_ReportOutOfMemory(cx);
             return false;
         }
+        MemProfiler::SampleNative(diffStart, diffLength);
 #  endif
     } else if (newByteLength < oldByteLength) {
         void *diffStart = data + newByteLength;
@@ -668,12 +669,14 @@ ArrayBufferObject::prepareForAsmJS(JSContext *cx, Handle<ArrayBufferObject*> buf
 # ifdef XP_WIN
     if (!VirtualAlloc(data, buffer->byteLength(), MEM_COMMIT, PAGE_READWRITE)) {
         VirtualFree(data, 0, MEM_RELEASE);
+        MemProfiler::RemoveNative(data);
         return false;
     }
 # else
     size_t validLength = buffer->byteLength();
     if (mprotect(data, validLength, PROT_READ | PROT_WRITE)) {
         munmap(data, AsmJSMappedSize);
+        MemProfiler::RemoveNative(data);
         return false;
     }
 #   if defined(MOZ_VALGRIND) && defined(VALGRIND_DISABLE_ADDR_ERROR_REPORTING_IN_RANGE)
@@ -710,7 +713,6 @@ ArrayBufferObject::BufferContents
 ArrayBufferObject::createMappedContents(int fd, size_t offset, size_t length)
 {
     void *data = AllocateMappedContent(fd, offset, length, ARRAY_BUFFER_ALIGNMENT);
-    MPSampleNativeHeap(data, length);
     return BufferContents::create<MAPPED>(data);
 }
 
@@ -737,7 +739,6 @@ ArrayBufferObject::releaseData(FreeOp *fop)
         fop->free_(dataPointer());
         break;
       case MAPPED:
-        MPRemove(dataPointer());
         DeallocateMappedContent(dataPointer(), byteLength());
         break;
       case ASMJS_MAPPED:
@@ -1409,7 +1410,6 @@ JS_CreateMappedArrayBufferContents(int fd, size_t offset, size_t length)
 JS_PUBLIC_API(void)
 JS_ReleaseMappedArrayBufferContents(void *contents, size_t length)
 {
-    MPRemove(contents);
     DeallocateMappedContent(contents, length);
 }
 

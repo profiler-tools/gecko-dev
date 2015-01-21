@@ -34,12 +34,12 @@
 #include "gc/Tracer.h"
 #include "irregexp/RegExpStack.h"
 #include "js/HashTable.h"
+#include "js/MemoryProfiler.h"
 #include "js/Vector.h"
 #include "vm/CommonPropertyNames.h"
 #include "vm/DateTime.h"
 #include "vm/MallocProvider.h"
 #include "vm/SPSProfiler.h"
-#include "vm/MemoryProfiler.h"
 #include "vm/Stack.h"
 #include "vm/Symbol.h"
 #include "vm/ThreadPool.h"
@@ -1415,7 +1415,7 @@ struct JSRuntime : public JS::shadow::Runtime,
      */
     mozilla::MallocSizeOf debuggerMallocSizeOf;
 
-    MProfiler mprofiler;
+    MemProfiler mMemProfiler;
 };
 
 namespace js {

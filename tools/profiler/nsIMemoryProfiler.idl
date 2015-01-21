@@ -16,9 +16,5 @@ interface nsIMemoryProfiler : nsISupports
   void resetProfiler();
 
   [implicit_jscontext]
-  jsval getFrameNameTable();
-  [implicit_jscontext]
-  jsval getStacktraceTable();
-  [implicit_jscontext]
-  jsval getAllocatedEntries();
+  jsval getResults();
 };

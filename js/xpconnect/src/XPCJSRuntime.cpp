@@ -48,8 +48,6 @@
 #include "nsIXULRuntime.h"
 #include "nsJSPrincipals.h"
 
-#include <vector>
-
 #ifdef MOZ_CRASHREPORTER
 #include "nsExceptionHandler.h"
 #endif
@@ -94,13 +92,6 @@ const char* const XPCJSRuntime::mStrings[] = {
 };
 
 /***************************************************************************/
-
-extern std::vector<const char *> SPSGetStacktrace();
-extern void MPSetStacktracer(JSRuntime *, std::vector<const char *> (*)());
-extern "C" void ReplaceMallocHook(void (*)(void *p, size_t), void (*)(void *p))
-           __attribute__((weak, visibility("default")));
-extern "C" void MPSampleNativeHeap(void *, size_t);
-extern "C" void MPRemove(void *);
 
 static mozilla::Atomic<bool> sDiscardSystemSource(false);
 
@@ -1642,10 +1633,7 @@ XPCJSRuntime::~XPCJSRuntime()
 #ifdef MOZ_ENABLE_PROFILER_SPS
     // Tell the profiler that the runtime is gone
     if (PseudoStack *stack = mozilla_get_pseudo_stack())
-    {
-        MPSetStacktracer(stack->mRuntime, nullptr);
         stack->sampleRuntime(nullptr);
-    }
 #endif
 
     Preferences::UnregisterCallback(ReloadPrefsCallback, JS_OPTIONS_DOT_STR, this);
@@ -3302,12 +3290,7 @@ XPCJSRuntime::XPCJSRuntime(nsXPConnect* aXPConnect)
 #endif
 #ifdef MOZ_ENABLE_PROFILER_SPS
     if (PseudoStack *stack = mozilla_get_pseudo_stack())
-    {
         stack->sampleRuntime(runtime);
-        if (ReplaceMallocHook)
-            ReplaceMallocHook(MPSampleNativeHeap, MPRemove);
-        MPSetStacktracer(runtime, SPSGetStacktrace);
-    }
 #endif
     JS_SetAccumulateTelemetryCallback(runtime, AccumulateTelemetryCallback);
     js::SetDefaultJSContextCallback(runtime, DefaultJSContextCallback);

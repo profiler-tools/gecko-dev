@@ -1,0 +1,17 @@
+CountAlloc is a replace-malloc library for Firefox
+(see memory/build/replace_malloc.h) that counts allocations in native heaps
+for the memory profiler.
+
+To enable counting allocations in native heaps the following environment
+variables need to be set when starting Firefox:
+- on Linux:
+  LD_PRELOAD=/path/to/libcountalloc.so
+- on Mac OSX:
+  DYLD_INSERT_LIBRARIES=/path/to/libcountalloc.dylib
+- on Windows:
+  MOZ_REPLACE_MALLOC_LIB=/path/to/countalloc.dll
+- on Android:
+  MOZ_REPLACE_MALLOC_LIB=/path/to/libcountalloc.so
+  (see https://wiki.mozilla.org/Mobile/Fennec/Android#Arguments_and_Environment_Variables
+  for how to pass environment variables to Firefox for Android)
+

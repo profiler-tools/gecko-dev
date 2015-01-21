@@ -4,15 +4,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-DIRS += ['logalloc']
-DIRS += ['countalloc']
+SharedLibrary('countalloc')
 
-# Build jemalloc3 as a replace-malloc lib when building with mozjemalloc
-if not CONFIG['MOZ_JEMALLOC3']:
-    DIRS += ['jemalloc']
+SOURCES += [
+    'CountAlloc.cpp',
+]
 
-if CONFIG['MOZ_REPLACE_MALLOC_LINKAGE'] == 'dummy library':
-    DIRS += ['dummy']
+DISABLE_STL_WRAPPING = True
+USE_STATIC_LIBS = True
+DEFINES['MOZ_NO_MOZALLOC'] = True
+# Avoid Lock_impl code depending on mozilla::Logger.
+DEFINES['NDEBUG'] = True
 
-if CONFIG['MOZ_DMD']:
-    DIRS += ['dmd']

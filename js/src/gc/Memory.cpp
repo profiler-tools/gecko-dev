@@ -9,6 +9,7 @@
 #include "mozilla/TaggedAnonymousMemory.h"
 
 #include "js/HeapAPI.h"
+#include "js/MemoryProfiler.h"
 #include "vm/Runtime.h"
 
 #if defined(XP_WIN)
@@ -711,6 +712,7 @@ AllocateMappedContent(int fd, size_t offset, size_t length, size_t alignment)
 
     buf = (uint8_t *) MapMemoryAt(buf, pa_size, PROT_READ | PROT_WRITE,
                                   MAP_PRIVATE | MAP_FIXED, fd, pa_start);
+    MemProfiler::SampleNative(buf, pa_size);
     if (!buf)
         return nullptr;
 
@@ -733,6 +735,7 @@ DeallocateMappedContent(void *p, size_t length)
     total_size = ((uintptr_t(p) + length) & ~(pageSize - 1)) + pageSize - uintptr_t(pa_start);
     if (munmap(pa_start, total_size))
         MOZ_ASSERT(errno == ENOMEM);
+    MemProfiler::RemoveNative(pa_start);
 }
 
 #else
